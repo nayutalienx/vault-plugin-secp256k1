@@ -353,6 +353,66 @@ func TestBTCKeys(t *testing.T) {
 	}
 	addressP2PKH := res.Data["address"].(string)
 	assert.NotEqual("", addressP2PKH)
+	assert.Equal("1", addressP2PKH[0:1])
+
+	// create P2PKH-Testnet key
+	data["addressType"] = "P2PKH-Testnet"
+	req.Data = data
+	res, err = b.HandleRequest(context.Background(), req)
+	if err != nil {
+		t.Fatalf("err: %v", err)
+	}
+	addressP2PKHTestnet := res.Data["address"].(string)
+	assert.NotEqual("", addressP2PKHTestnet)
+	if addressP2PKHTestnet[0:1] != "m" && addressP2PKHTestnet[0:1] != "n" {
+		t.Fatalf("invalid testnet address %v", addressP2PKHTestnet)
+	}
+
+	// create P2PKH-Regtest key
+	data["addressType"] = "P2PKH-Regtest"
+	req.Data = data
+	res, err = b.HandleRequest(context.Background(), req)
+	if err != nil {
+		t.Fatalf("err: %v", err)
+	}
+	addressP2PKHRegtest := res.Data["address"].(string)
+	assert.NotEqual("", addressP2PKHRegtest)
+	if addressP2PKHRegtest[0:1] != "m" && addressP2PKHRegtest[0:1] != "n" {
+		t.Fatalf("invalid regtest address %v", addressP2PKHRegtest)
+	}
+
+	// create P2WPKH key
+	data["addressType"] = "P2WPKH"
+	req.Data = data
+	res, err = b.HandleRequest(context.Background(), req)
+	if err != nil {
+		t.Fatalf("err: %v", err)
+	}
+	addressP2WPKH := res.Data["address"].(string)
+	assert.NotEqual("", addressP2WPKH)
+	assert.Equal("bc1", addressP2WPKH[0:3])
+
+	// create P2WPKH-Testnet key
+	data["addressType"] = "P2WPKH-Testnet"
+	req.Data = data
+	res, err = b.HandleRequest(context.Background(), req)
+	if err != nil {
+		t.Fatalf("err: %v", err)
+	}
+	addressP2WPKHTestnet := res.Data["address"].(string)
+	assert.NotEqual("", addressP2WPKHTestnet)
+	assert.Equal("tb1", addressP2WPKHTestnet[0:3])
+
+	// create P2WPKH-Regtest key
+	data["addressType"] = "P2WPKH-Regtest"
+	req.Data = data
+	res, err = b.HandleRequest(context.Background(), req)
+	if err != nil {
+		t.Fatalf("err: %v", err)
+	}
+	addressP2WPKHRegtest := res.Data["address"].(string)
+	assert.NotEqual("", addressP2WPKHRegtest)
+	assert.Equal("bcrt", addressP2WPKHRegtest[0:4])
 }
 
 func TestTronKeys(t *testing.T) {

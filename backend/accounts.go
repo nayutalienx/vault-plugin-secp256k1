@@ -130,6 +130,48 @@ func (b *backend) createAccount(ctx context.Context, req *logical.Request, data 
 			return nil, err
 		}
 		address = addr.EncodeAddress()
+	case "P2PKH-Regtest":
+		pubKeyHash := btcutil.Hash160(publicKeyBytes)
+
+		params := &chaincfg.RegressionNetParams
+		var addr btcutil.Address
+		addr, err = btcutil.NewAddressPubKeyHash(
+			pubKeyHash, params,
+		)
+		if err != nil {
+			return nil, err
+		}
+		address = addr.EncodeAddress()		
+	case "P2WPKH":
+		pubKeyHash := btcutil.Hash160(publicKeyBytes)
+
+		params := &chaincfg.MainNetParams
+		var addr btcutil.Address
+		addr, err = btcutil.NewAddressWitnessPubKeyHash(pubKeyHash, params)
+		if err != nil {
+			return nil, err
+		}
+		address = addr.EncodeAddress()
+	case "P2WPKH-Testnet":
+		pubKeyHash := btcutil.Hash160(publicKeyBytes)
+
+		params := &chaincfg.TestNet3Params
+		var addr btcutil.Address
+		addr, err = btcutil.NewAddressWitnessPubKeyHash(pubKeyHash, params)
+		if err != nil {
+			return nil, err
+		}
+		address = addr.EncodeAddress()
+	case "P2WPKH-Regtest":
+		pubKeyHash := btcutil.Hash160(publicKeyBytes)
+
+		params := &chaincfg.RegressionNetParams
+		var addr btcutil.Address
+		addr, err = btcutil.NewAddressWitnessPubKeyHash(pubKeyHash, params)
+		if err != nil {
+			return nil, err
+		}
+		address = addr.EncodeAddress()		
 	case "TRON":
 		pub, err := btcec.ParsePubKey(publicKeyBytes)
 		if err != nil {

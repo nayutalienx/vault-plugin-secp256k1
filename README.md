@@ -123,8 +123,11 @@ Optional `addressType` value in the request should contain the type of address t
 Supported types are:
 *`P2PKH` - Bitcoin P2PKH (legacy) address
 *`P2PKH-Testnet` - Bitcoin P2PKH (legacy) address for Testnet
+*`P2PKH-Regtest` - Bitcoin P2PKH (legacy) address for Regtest
 *`P2SH` - not supported yet
-*`P2WPKH` - not supported yet
+*`P2WPKH` - Bitcoin P2WPKH (Native Segwit) address
+*`P2WPKH-Testnet` - Bitcoin P2WPKH (Native Segwit) address for Testnet
+*`P2WPKH-Regtest` - Bitcoin P2WPKH (Native Segwit) address for Regtest
 *`P2TR` - not supported yet
 *`ETH` - Ethereum account address (default value). 
 *`TRON` - Tron account address. 
