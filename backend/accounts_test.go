@@ -17,6 +17,7 @@ package backend
 import (
 	"bytes"
 	"context"
+	"crypto/ecdsa"
 	"errors"
 	"math/big"
 	"reflect"
@@ -24,8 +25,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/btcsuite/btcd/btcutil"
+	"github.com/btcsuite/btcd/chaincfg"
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/rlp"
 
 	log "github.com/hashicorp/go-hclog"
@@ -95,6 +99,69 @@ func newStorageMock() StorageMock {
 	var sm StorageMock
 	sm.switches = []int{0, 0, 0, 0}
 	return sm
+}
+
+func TestAddressFromPubKey(t *testing.T) {
+
+	uncompressedPubKey :="045c12f079a79d854a3011b555b2f6056e7e06cce7ef8247f0d6b8fd120bc0d1956e3fb580ba98bf3ed79127d8d3d788f9fc70562c9294182cf43b6856150349e5"
+	extendedKeyBytes, err := hexutil.Decode("0x" + uncompressedPubKey)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	pubKeyHash := btcutil.Hash160(extendedKeyBytes)
+
+	params := &chaincfg.RegressionNetParams
+	var addr btcutil.Address
+	addr, err = btcutil.NewAddressWitnessPubKeyHash(pubKeyHash, params)
+	if err != nil {
+		t.Fatal(err)
+	}
+	address := addr.EncodeAddress()
+
+	assert.Equal(t, "bcrt1qr5xhahq90qecgtqdnlnnu0t79449swugwk3swd", address)
+}
+
+func TestImportSegwitKey(t *testing.T) {
+	privateKeyHex := "8aeef717c818bdcf4790d8f45ecd60e863612a9a29dc213f6e245667e1a75320"
+	privateKey, err := crypto.HexToECDSA(privateKeyHex)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	publicKey := privateKey.Public()
+	publicKeyECDSA, _ := publicKey.(*ecdsa.PublicKey)
+	publicKeyBytes := crypto.FromECDSAPub(publicKeyECDSA)
+
+
+	pubKeyHash := btcutil.Hash160(publicKeyBytes)
+
+	// uncompressed
+
+	params := &chaincfg.RegressionNetParams
+	var uncompressedKeyAddress btcutil.Address
+	uncompressedKeyAddress, err = btcutil.NewAddressWitnessPubKeyHash(pubKeyHash, params)
+	if err != nil {
+		t.Fatal(err)
+	}
+	uncompressedAddress := uncompressedKeyAddress.EncodeAddress()
+
+	assert.Equal(t, "bcrt1qhyupylpe3p4d0tfhpepcpd0x6pzecle3na4f47", uncompressedAddress)
+
+	// compressed
+
+	compressedPubKeyBytes := compressPubKey(publicKeyECDSA);
+	compressedPubKeyHash := btcutil.Hash160(compressedPubKeyBytes)
+
+	var compressedKeyAddress btcutil.Address
+	compressedKeyAddress, err = btcutil.NewAddressWitnessPubKeyHash(compressedPubKeyHash, params)
+	if err != nil {
+		t.Fatal(err)
+	}
+	compressedAddress := compressedKeyAddress.EncodeAddress()
+
+	assert.Equal(t, "bcrt1qyqlngc374rfe9ecj5nvh8vs3r05rgvq4lmmqxf", compressedAddress)
+
 }
 
 func TestAccounts(t *testing.T) {

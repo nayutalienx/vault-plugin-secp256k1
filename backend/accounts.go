@@ -143,7 +143,8 @@ func (b *backend) createAccount(ctx context.Context, req *logical.Request, data 
 		}
 		address = addr.EncodeAddress()		
 	case "P2WPKH":
-		pubKeyHash := btcutil.Hash160(publicKeyBytes)
+		// в P2WPKH адресе используется сжатый ключ
+		pubKeyHash := btcutil.Hash160(compressPubKey(publicKeyECDSA))
 
 		params := &chaincfg.MainNetParams
 		var addr btcutil.Address
@@ -153,7 +154,8 @@ func (b *backend) createAccount(ctx context.Context, req *logical.Request, data 
 		}
 		address = addr.EncodeAddress()
 	case "P2WPKH-Testnet":
-		pubKeyHash := btcutil.Hash160(publicKeyBytes)
+		// в P2WPKH адресе используется сжатый ключ
+		pubKeyHash := btcutil.Hash160(compressPubKey(publicKeyECDSA))
 
 		params := &chaincfg.TestNet3Params
 		var addr btcutil.Address
@@ -163,7 +165,8 @@ func (b *backend) createAccount(ctx context.Context, req *logical.Request, data 
 		}
 		address = addr.EncodeAddress()
 	case "P2WPKH-Regtest":
-		pubKeyHash := btcutil.Hash160(publicKeyBytes)
+		// в P2WPKH адресе используется сжатый ключ
+		pubKeyHash := btcutil.Hash160(compressPubKey(publicKeyECDSA))
 
 		params := &chaincfg.RegressionNetParams
 		var addr btcutil.Address
@@ -467,4 +470,27 @@ func encodeBase64(b []byte) string {
 func decodeBase64(s string) []byte {
 	r, _ := base64.StdEncoding.DecodeString(s)
 	return r
+}
+
+func compressPubKey(pubKey *ecdsa.PublicKey) []byte {
+	// Проверяем, что ключ использует эллиптическую кривую
+	if pubKey == nil || pubKey.X == nil || pubKey.Y == nil {
+		return nil
+	}
+
+	// Получаем размер координаты X в байтах (зависит от кривой)
+	xBytes := pubKey.X.Bytes()
+	compressed := make([]byte, 1+len(xBytes))
+
+	// Первый байт указывает, сжатый ли ключ и чётность Y:
+	// 0x02 если Y чётное, 0x03 если Y нечётное
+	compressed[0] = 0x02
+	if pubKey.Y.Bit(0) == 1 { // Проверяем чётность Y
+		compressed[0] = 0x03
+	}
+
+	// Копируем X в остаток массива
+	copy(compressed[1:], xBytes)
+
+	return compressed
 }
